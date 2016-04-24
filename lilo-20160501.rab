@@ -196,7 +196,7 @@
 = ntp 設定 (2/3)
 
   * /etc/systemd/timesyncd.conf の Servers 設定
-    * Servers=ntp1.jst.mfeed.ad.jp ntp2.jst.mfeed.ad.jp ntp3.jst.mfeed.ad.jp
+    * Servers=ntp1.sakura.ad.jp
   * systemctl restart systemd-timesyncd で反映
 
 = ntp 設定 (3/3)
