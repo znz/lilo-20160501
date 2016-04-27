@@ -330,6 +330,40 @@ Terms of Service に同意 (初回のみ)
   * ufw allow 443/tcp でポート開放
   * https://lilo.linux.or.jp/ で表示確認
 
+= mailman 設定変更
+
+  * /etc/mailman/mm_cfg.py の DEFAULT_URL_PATTERN を変更
+    * 'http://%s/cgi-bin/mailman/' を
+    * 'https://%s/cgi-bin/mailman/' に変更
+
+= 自動更新設定 (1/2)
+
+/etc/cron.daily/local-letsencrypt に以下のスクリプトを設置
+
+  #!/bin/sh
+  LOGFILE=/var/log/letsencrypt/renew.log
+  if [ -f "$LOGFILE" ]; then
+      savelog -c 90 -q "$LOGFILE"
+  fi
+  if ! letsencrypt renew > "$LOGFILE" 2>&1 ; then
+      echo Automated renewal failed:
+      cat "$LOGFILE"
+      exit 1
+  fi
+  if [ -f "$LOGFILE".0 ]; then
+      diff -u "$LOGFILE".0 "$LOGFILE"
+  fi
+  apachectl graceful
+  service postfix reload
+
+= 自動更新設定 (2/2)
+
+  * スクリプトについて
+    * 基本部分は https://letsencrypt.org/getting-started/ 由来
+    * ログの保存回数 (日数) の 90 は letsencrypt の証明書の有効期限から
+    * savelog コマンドは debianutils パッケージ由来
+    * 失敗した時以外でも差分があればメールが飛ぶ
+
 = まとめ (1/3)
 
   * wheezy から jessie へのアップグレードしました。
@@ -345,5 +379,7 @@ Terms of Service に同意 (初回のみ)
 
 = まとめ (3/3)
 
-  * letsencrypt の証明書を導入しました。
-  * postfix (SMTP over TLS) と apache2 (https) の設定をしました。
+  * letsencrypt の証明書を導入
+  * postfix (SMTP over TLS) と apache2 (https) の設定
+  * mailman の設定も変更
+  * cron で自動更新の設定
