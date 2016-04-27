@@ -252,15 +252,98 @@ http://blog.n-z.jp/blog/2016-04-18-libpam-google-authenticator.html 参照
   * 「Protocol 2,1」を「Protocol 2」に変更
   * rkhunter.conf の「ALLOW_SSH_PROT_V1=1」はこれが関係していた
 
-= まとめ (1/2)
+= TLS 導入
+
+  * letsencrypt の証明書導入
+  * 事前準備
+    * JLA (linux.or.jp の管理組織) に確認
+    * letsencrypt 用メールアドレス作成
+  * 各種サービスに設定
+
+= letsencrypt パッケージインストール
+
+  * backports を有効に
+    * deb http://ftp.jp.debian.org/debian jessie-backports main
+  * インストール
+    * apt install -t jessie-backports letsencrypt
+  * バージョン 0.5.0-1~bpo8+1 が入った
+
+= letsencrypt の証明書発行
+
+重要やアカウントの復旧用メールアドレス設定 (初回のみ)
+
+  # image
+  # src = letsencrypt-1.png
+  # relative_height = 100
+
+= letsencrypt の証明書発行
+
+Terms of Service に同意 (初回のみ)
+
+  # image
+  # src = letsencrypt-2.png
+  # relative_height = 100
+
+= letsencrypt の証明書発行
+
+証明書発行完了
+
+  # image
+  # src = letsencrypt-3.png
+  # relative_height = 100
+
+= postfix 設定 (変更前)
+
+  smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+  smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+  smtpd_use_tls=yes
+  smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+  smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+= postfix 設定 (変更後)
+
+  smtpd_tls_cert_file = /etc/letsencrypt/live/lilo.linux.or.jp/fullchain.pem
+  smtpd_tls_key_file = /etc/letsencrypt/live/lilo.linux.or.jp/privkey.pem
+  smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3
+  smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
+  smtp_tls_protocols = !SSLv2, !SSLv3
+  smtpd_use_tls=yes
+  smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+  smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+= postfix 設定
+
+  * snakeoil から letsencrypt の証明書に変更
+  * SSLv2, SSLv3 を禁止
+  * service postfix reload で設定反映
+  * nc localhost 25 で EHLO localhost で動作確認 (STARTTLS が含まれる)
+
+= apache2 設定 (1/2)
+
+  * /etc/apache2/sites-available/ の default-ssl.conf などを元に設定作成
+  * a2ensite lilo.linux.or.jp_ssl.conf で有効に
+
+= apache2 設定 (2/2)
+
+  * a2enmod ssl で SSL を有効に
+  * service apache2 restart で反映
+  * ufw allow 443/tcp でポート開放
+  * https://lilo.linux.or.jp/ で表示確認
+
+= まとめ (1/3)
 
   * wheezy から jessie へのアップグレードしました。
     * apache の移行で少しの間 Web が見えない時間が発生しました。
     * dokuwiki も雑に対処しました。
     * 他は大きな問題はなさそうでした。
 
-= まとめ (2/2)
+= まとめ (2/3)
 
   * 二要素認証を導入しました。
     * 今は google-authenticator コマンドを実行して ~/.google_authenticator が存在するユーザーだけ
     * 移行期間として１ヶ月くらい余裕を見て、6月になったら ~/.google_authenticator の存在チェックを外す予定
+
+= まとめ (3/3)
+
+  * letsencrypt の証明書を導入しました。
+  * postfix (SMTP over TLS) と apache2 (https) の設定をしました。
