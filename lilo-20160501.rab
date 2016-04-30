@@ -215,6 +215,40 @@
     * ここで「rkhunter が unhide.rb | unhide を推奨」と出たので unhide.rb から unhide に移行
     * 削除後に「Invalid SCRIPTWHITELIST configuration option: Non-existent pathname: /usr/bin/unhide.rb」と出たのでコメントアウト
 
+= mailman のエラー対応 (1/4)
+
+  * 昨日さとうさんの指摘で気付いた
+  * lilo ML のメールが流れない状態になっていた
+
+= mailman のエラー対応 (2/4)
+
+根本的な原因は Debian の UTF-8 対応
+
+  /usr/share/doc/mailman/NEWS.Debian.gz より:
+  mailman (1:2.1.16-1exp1) experimental; urgency=low
+
+    This version has changed the encoding of most strings, templates
+    and pages to UTF-8 to meet the Debian release goal of full UTF-8
+    support in all packages. It also no longer automatically converts
+    mails to ISO-8859-1.
+
+    If you have been using any nōn-ASCII strings in places such as
+    the mailing list description, these were be stored wrongly in the
+    list configuration file (config.pck), so you will need to change
+    those (e.g. via the webinterface) again in order to have them be
+    displayed correctly.
+
+   -- Thorsten Glaser <tg@mirbsd.de>  Sun, 29 Dec 2013 14:35:50 +0000
+
+= mailman のエラー対応 (3/4)
+
+  * Web の設定画面から文字化けしていた description と info を修正
+
+= mailman のエラー対応 (4/4)
+
+  * /var/lib/mailman/qfiles/shunt/ に qrunner でエラーになったメールがたまっていた
+  * /var/lib/mailman/bin/unshunt コマンドを実行すると流れた
+
 = 二要素認証導入
 
   * aptitude install libpam-google-authenticator
@@ -369,6 +403,7 @@ Terms of Service に同意 (初回のみ)
   * wheezy から jessie へのアップグレードしました。
     * apache の移行で少しの間 Web が見えない時間が発生しました。
     * dokuwiki も雑に対処しました。
+    * mailman で問題が起きました。
     * 他は大きな問題はなさそうでした。
 
 = まとめ (2/3)
